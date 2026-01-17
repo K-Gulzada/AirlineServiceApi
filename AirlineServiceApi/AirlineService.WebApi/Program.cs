@@ -1,19 +1,41 @@
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 using AirlineService.Application;
+using AirlineService.Application.Common.Interfaces;
 using AirlineService.Infrastructure;
 using AirlineService.Infrastructure.Data;
 using AirlineService.Infrastructure.Services;
 using AirlineService.WebApi.Filters;
 using AirlineService.WebApi.Middleware;
+using AirlineService.WebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+    .WriteTo.File(
+        path: "logs/airline-service-.log",
+        rollingInterval: RollingInterval.Day,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
+
+try
+{
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog();
 
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 // JWT Authentication
 var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>();
@@ -44,12 +66,19 @@ builder.Services.AddAuthentication(options =>
             context.HandleResponse();
             context.Response.StatusCode = 401;
             context.Response.ContentType = "application/json";
+            
+            Log.Warning("Unauthorized access | User: Anonymous | Path: {Path}", context.Request.Path);
+            
             return context.Response.WriteAsync("{\"message\":\"Unauthorized. Please provide a valid JWT token.\"}");
         },
         OnForbidden = context =>
         {
             context.Response.StatusCode = 403;
             context.Response.ContentType = "application/json";
+            
+            var username = context.HttpContext.User.FindFirst(ClaimTypes.Name)?.Value ?? "Unknown";
+            Log.Warning("Forbidden access | User: {Username} | Path: {Path}", username, context.Request.Path);
+            
             return context.Response.WriteAsync("{\"message\":\"Forbidden. You do not have permission to access this resource.\"}");
         }
     };
@@ -142,4 +171,14 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+Log.Information("Application started");
 await app.RunAsync();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace AirlineService.WebApi.Middleware;
@@ -24,12 +25,14 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred");
-            await HandleExceptionAsync(context, ex);
+            var username = context.User.FindFirst(ClaimTypes.Name)?.Value ?? "Anonymous";
+            _logger.LogError(ex, "Internal server error | User: {Username} | Path: {Path}",
+                username, context.Request.Path);
+            await HandleExceptionAsync(context);
         }
     }
 
-    private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private static async Task HandleExceptionAsync(HttpContext context)
     {
         context.Response.StatusCode = StatusCodes.Status500InternalServerError;
         context.Response.ContentType = "application/json";
