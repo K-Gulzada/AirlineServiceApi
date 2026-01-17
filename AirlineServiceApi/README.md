@@ -7,7 +7,7 @@ A .NET 6.0 Web API for managing airline flight statuses. Built with Clean Archit
 - **Clean Architecture** - Domain, Application, Infrastructure, WebApi layers
 - **CQRS** - Command Query Responsibility Segregation with MediatR
 - **JWT Authentication** - Secure token-based authentication with BCrypt password hashing
-- **Role-based Authorization** - Policy-based access control (User, Moderator)
+- **Role-based Authorization** - Policy-based access control (Moderator)
 - **EF Core** - Code-first approach with MSSQL
 - **Caching** - In-memory caching with automatic invalidation
 - **Validation** - FluentValidation with automatic pipeline validation
@@ -222,7 +222,6 @@ Update flight status. **Requires Moderator role.**
 | Username | Password | Role |
 |----------|----------|------|
 | moderator | moderator123 | Moderator |
-| user | user123 | User |
 
 ## Running Tests
 

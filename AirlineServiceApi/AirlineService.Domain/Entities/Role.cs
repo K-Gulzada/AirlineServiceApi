@@ -11,7 +11,7 @@ public class Role
     public int Id { get; set; }
 
     /// <summary>
-    /// Unique role code (e.g., "User", "Moderator"). Max 256 characters.
+    /// Unique role code (e.g., "Moderator"). Max 256 characters.
     /// </summary>
     public string Code { get; set; } = string.Empty;
 

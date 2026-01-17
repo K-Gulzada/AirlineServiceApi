@@ -66,14 +66,13 @@ public class ApplicationDbContextInitializer
 
         var roles = new List<Role>
         {
-            new Role { Code = "User" },
             new Role { Code = "Moderator" }
         };
 
         _context.Roles.AddRange(roles);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Seeded roles: User, Moderator");
+        _logger.LogInformation("Seeded role: Moderator");
     }
 
     private async Task SeedUsersAsync()
@@ -82,7 +81,6 @@ public class ApplicationDbContextInitializer
             return;
 
         var moderatorRole = await _context.Roles.FirstAsync(r => r.Code == "Moderator");
-        var userRole = await _context.Roles.FirstAsync(r => r.Code == "User");
 
         var users = new List<User>
         {
@@ -91,19 +89,13 @@ public class ApplicationDbContextInitializer
                 Username = "moderator",
                 Password = _passwordHasher.HashPassword("moderator123"),
                 RoleId = moderatorRole.Id
-            },
-            new User
-            {
-                Username = "user",
-                Password = _passwordHasher.HashPassword("user123"),
-                RoleId = userRole.Id
             }
         };
 
         _context.Users.AddRange(users);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Seeded users: moderator (Moderator), user (User)");
+        _logger.LogInformation("Seeded user: moderator (Moderator)");
     }
 
     private async Task SeedFlightsAsync()
