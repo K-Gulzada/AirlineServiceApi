@@ -267,7 +267,17 @@ Logs are written to the `logs/` folder with daily rolling files:
 }
 ```
 
-## License
+## Local Application run
+<img width="600" height="400" alt="image" src="https://github.com/user-attachments/assets/90404709-db69-4072-b40f-8e840986468b" />
 
-This project is for educational purposes.
+<img width="650" height="400" alt="image" src="https://github.com/user-attachments/assets/2e97016d-8091-4265-9df2-1c73bd2979e5" />
+
+<img width="580" height="400" alt="image" src="https://github.com/user-attachments/assets/9ae02a90-6c95-45d1-9f35-a644f481bc98" />
+
+
+<img width="580" height="400" alt="image" src="https://github.com/user-attachments/assets/3c8d5e89-7093-4ec4-b499-14bb4ecf58f4" />
+
+
+
+
 
