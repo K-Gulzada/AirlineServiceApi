@@ -1,3 +1,4 @@
+using AirlineService.Application.Common;
 using AirlineService.Application.Common.Interfaces;
 using AirlineService.Application.Flights.DTOs;
 using AirlineService.Domain.Entities;
@@ -6,9 +7,6 @@ using Microsoft.Extensions.Logging;
 
 namespace AirlineService.Application.Flights.Commands;
 
-/// <summary>
-/// Handler for CreateFlightCommand.
-/// </summary>
 public class CreateFlightCommandHandler : IRequestHandler<CreateFlightCommand, FlightDto>
 {
     private readonly IApplicationDbContext _context;
@@ -42,8 +40,7 @@ public class CreateFlightCommandHandler : IRequestHandler<CreateFlightCommand, F
         await _context.Flights.AddAsync(flight);
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Invalidate flights cache
-        await _cacheService.RemoveByPatternAsync("flights_*");
+        await _cacheService.RemoveByPatternAsync(Constants.Cache.FlightsPattern);
 
         _logger.LogInformation("{FlightID} Flight was created by User: {Username}", 
             flight.Id, _currentUserService.Username);

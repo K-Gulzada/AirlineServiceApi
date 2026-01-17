@@ -1,3 +1,4 @@
+using AirlineService.Application.Common;
 using AirlineService.Application.Common.Interfaces;
 using AirlineService.Application.Common.Models;
 using AirlineService.Application.Flights.DTOs;
@@ -6,9 +7,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AirlineService.Application.Flights.Queries;
 
-/// <summary>
-/// Handler for GetFlightsQuery. Reads from cache first, falls back to database.
-/// </summary>
 public class GetFlightsQueryHandler : IRequestHandler<GetFlightsQuery, PaginatedList<FlightDto>>
 {
     private readonly IApplicationDbContext _context;
@@ -64,7 +62,7 @@ public class GetFlightsQueryHandler : IRequestHandler<GetFlightsQuery, Paginated
 
         var result = new PaginatedList<FlightDto>(flights, totalCount, request.PageNumber, request.PageSize);
 
-        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(10));
+        await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(Constants.Cache.DefaultExpirationMinutes));
 
         return result;
     }

@@ -1,12 +1,9 @@
-using System.Text.Json;
+using AirlineService.Application.Common;
 using AirlineService.Application.Common.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace AirlineService.Infrastructure.Services;
 
-/// <summary>
-/// Memory cache implementation of ICacheService.
-/// </summary>
 public class MemoryCacheService : ICacheService
 {
     private readonly IMemoryCache _cache;
@@ -34,7 +31,7 @@ public class MemoryCacheService : ICacheService
         }
         else
         {
-            options.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
+            options.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.Cache.DefaultCacheMinutes);
         }
 
         lock (_lock)

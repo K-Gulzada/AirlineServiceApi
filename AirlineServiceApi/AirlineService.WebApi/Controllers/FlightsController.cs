@@ -1,3 +1,4 @@
+using AirlineService.Application.Common;
 using AirlineService.Application.Common.Models;
 using AirlineService.Application.Flights.Commands;
 using AirlineService.Application.Flights.DTOs;
@@ -8,9 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AirlineService.WebApi.Controllers;
 
-/// <summary>
-/// Controller for managing flights.
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
@@ -66,7 +64,7 @@ public class FlightsController : ControllerBase
     /// <response code="401">Unauthorized - valid JWT token required.</response>
     /// <response code="403">Forbidden - Moderator role required.</response>
     [HttpPost]
-    [Authorize(Policy = "ModeratorOnly")]
+    [Authorize(Policy = Constants.Policies.ModeratorOnly)]
     [ProducesResponseType(typeof(FlightDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -98,7 +96,7 @@ public class FlightsController : ControllerBase
     /// <response code="403">Forbidden - Moderator role required.</response>
     /// <response code="404">Flight not found.</response>
     [HttpPut("{id}/status")]
-    [Authorize(Policy = "ModeratorOnly")]
+    [Authorize(Policy = Constants.Policies.ModeratorOnly)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

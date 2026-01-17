@@ -1,3 +1,4 @@
+using AirlineService.Application.Common;
 using AirlineService.Application.Common.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -5,9 +6,6 @@ using Microsoft.Extensions.Logging;
 
 namespace AirlineService.Application.Flights.Commands;
 
-/// <summary>
-/// Handler for UpdateFlightStatusCommand.
-/// </summary>
 public class UpdateFlightStatusCommandHandler : IRequestHandler<UpdateFlightStatusCommand, bool>
 {
     private readonly IApplicationDbContext _context;
@@ -43,8 +41,7 @@ public class UpdateFlightStatusCommandHandler : IRequestHandler<UpdateFlightStat
         flight.Status = request.Status;
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Invalidate flights cache
-        await _cacheService.RemoveByPatternAsync("flights_*");
+        await _cacheService.RemoveByPatternAsync(Constants.Cache.FlightsPattern);
 
         _logger.LogInformation("{FlightId} Flight status updated by User: {Username}",
             flight.Id, _currentUserService.Username);

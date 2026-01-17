@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using AirlineService.Application;
+using AirlineService.Application.Common;
 using AirlineService.Application.Common.Interfaces;
 using AirlineService.Infrastructure;
 using AirlineService.Infrastructure.Data;
@@ -86,7 +87,9 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("ModeratorOnly", policy => policy.RequireRole("Moderator"));
+    options.AddPolicy(
+        Constants.Policies.ModeratorOnly,
+        policy => policy.RequireRole(Constants.Roles.Moderator));
 });
 
 builder.Services.AddControllers(options =>
