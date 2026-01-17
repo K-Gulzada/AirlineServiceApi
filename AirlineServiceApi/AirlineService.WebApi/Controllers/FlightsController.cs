@@ -2,6 +2,7 @@ using AirlineService.Application.Common.Models;
 using AirlineService.Application.Flights.DTOs;
 using AirlineService.Application.Flights.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AirlineService.WebApi.Controllers;
@@ -12,6 +13,7 @@ namespace AirlineService.WebApi.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
+[Authorize]
 public class FlightsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -31,8 +33,10 @@ public class FlightsController : ControllerBase
     /// <param name="pageSize">Number of items per page (default is 10).</param>
     /// <returns>Paginated list of flights sorted by arrival time.</returns>
     /// <response code="200">Returns the paginated list of flights.</response>
+    /// <response code="401">Unauthorized - valid JWT token required.</response>
     [HttpGet]
     [ProducesResponseType(typeof(PaginatedList<FlightDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<PaginatedList<FlightDto>>> GetFlights(
         [FromQuery] string? origin,
         [FromQuery] string? destination,

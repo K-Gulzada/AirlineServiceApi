@@ -1,3 +1,4 @@
+using AirlineService.Application.Common.Interfaces;
 using AirlineService.Domain.Entities;
 using AirlineService.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -11,13 +12,16 @@ namespace AirlineService.Infrastructure.Data;
 public class ApplicationDbContextInitializer
 {
     private readonly ApplicationDbContext _context;
+    private readonly IPasswordHasher _passwordHasher;
     private readonly ILogger<ApplicationDbContextInitializer> _logger;
 
     public ApplicationDbContextInitializer(
         ApplicationDbContext context,
+        IPasswordHasher passwordHasher,
         ILogger<ApplicationDbContextInitializer> logger)
     {
         _context = context;
+        _passwordHasher = passwordHasher;
         _logger = logger;
     }
 
@@ -45,6 +49,7 @@ public class ApplicationDbContextInitializer
         try
         {
             await SeedRolesAsync();
+            await SeedUsersAsync();
             await SeedFlightsAsync();
         }
         catch (Exception ex)
@@ -69,6 +74,36 @@ public class ApplicationDbContextInitializer
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Seeded roles: User, Moderator");
+    }
+
+    private async Task SeedUsersAsync()
+    {
+        if (await _context.Users.AnyAsync())
+            return;
+
+        var moderatorRole = await _context.Roles.FirstAsync(r => r.Code == "Moderator");
+        var userRole = await _context.Roles.FirstAsync(r => r.Code == "User");
+
+        var users = new List<User>
+        {
+            new User
+            {
+                Username = "moderator",
+                Password = _passwordHasher.HashPassword("moderator123"),
+                RoleId = moderatorRole.Id
+            },
+            new User
+            {
+                Username = "user",
+                Password = _passwordHasher.HashPassword("user123"),
+                RoleId = userRole.Id
+            }
+        };
+
+        _context.Users.AddRange(users);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Seeded users: moderator (Moderator), user (User)");
     }
 
     private async Task SeedFlightsAsync()
