@@ -1,4 +1,5 @@
 using AirlineService.Application.Common.Models;
+using AirlineService.Application.Flights.Commands;
 using AirlineService.Application.Flights.DTOs;
 using AirlineService.Application.Flights.Queries;
 using MediatR;
@@ -53,5 +54,69 @@ public class FlightsController : ControllerBase
 
         var result = await _mediator.Send(query);
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Creates a new flight. Requires Moderator role.
+    /// </summary>
+    /// <param name="request">Flight data.</param>
+    /// <returns>The created flight.</returns>
+    /// <response code="201">Flight created successfully.</response>
+    /// <response code="400">Invalid request data.</response>
+    /// <response code="401">Unauthorized - valid JWT token required.</response>
+    /// <response code="403">Forbidden - Moderator role required.</response>
+    [HttpPost]
+    [Authorize(Policy = "ModeratorOnly")]
+    [ProducesResponseType(typeof(FlightDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<FlightDto>> CreateFlight([FromBody] CreateFlightRequest request)
+    {
+        var command = new CreateFlightCommand
+        {
+            Origin = request.Origin,
+            Destination = request.Destination,
+            Departure = request.Departure,
+            Arrival = request.Arrival,
+            Status = request.Status
+        };
+
+        var result = await _mediator.Send(command);
+        return CreatedAtAction(nameof(GetFlights), new { id = result.Id }, result);
+    }
+
+    /// <summary>
+    /// Updates the status of an existing flight. Requires Moderator role.
+    /// </summary>
+    /// <param name="id">The flight ID.</param>
+    /// <param name="request">The new status.</param>
+    /// <returns>No content on success.</returns>
+    /// <response code="204">Status updated successfully.</response>
+    /// <response code="400">Invalid request data.</response>
+    /// <response code="401">Unauthorized - valid JWT token required.</response>
+    /// <response code="403">Forbidden - Moderator role required.</response>
+    /// <response code="404">Flight not found.</response>
+    [HttpPut("{id}/status")]
+    [Authorize(Policy = "ModeratorOnly")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateFlightStatus(int id, [FromBody] UpdateFlightStatusRequest request)
+    {
+        var command = new UpdateFlightStatusCommand
+        {
+            Id = id,
+            Status = request.Status
+        };
+
+        var result = await _mediator.Send(command);
+
+        if (!result)
+            return NotFound(new { message = $"Flight with ID {id} not found." });
+
+        return NoContent();
     }
 }

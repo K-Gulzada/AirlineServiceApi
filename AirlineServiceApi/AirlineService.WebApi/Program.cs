@@ -4,6 +4,8 @@ using AirlineService.Application;
 using AirlineService.Infrastructure;
 using AirlineService.Infrastructure.Data;
 using AirlineService.Infrastructure.Services;
+using AirlineService.WebApi.Filters;
+using AirlineService.WebApi.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -34,6 +36,23 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings.Audience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret))
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = context =>
+        {
+            context.HandleResponse();
+            context.Response.StatusCode = 401;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsync("{\"message\":\"Unauthorized. Please provide a valid JWT token.\"}");
+        },
+        OnForbidden = context =>
+        {
+            context.Response.StatusCode = 403;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsync("{\"message\":\"Forbidden. You do not have permission to access this resource.\"}");
+        }
+    };
 });
 
 builder.Services.AddAuthorization(options =>
@@ -41,7 +60,10 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("ModeratorOnly", policy => policy.RequireRole("Moderator"));
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ValidationExceptionFilter>();
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -104,11 +126,16 @@ using (var scope = app.Services.CreateScope())
     await initializer.SeedAsync();
 }
 
-app.UseSwagger();
-app.UseSwaggerUI(options =>
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+if (app.Environment.IsDevelopment())
 {
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Airline Service API v1");
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Airline Service API v1");
+    });
+}
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
