@@ -1,6 +1,8 @@
+using System.Reflection;
 using AirlineService.Application;
 using AirlineService.Infrastructure;
 using AirlineService.Infrastructure.Data;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,12 +14,27 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Airline Service API",
         Version = "v1",
-        Description = "Web API for managing airline flight statuses"
+        Description = "Web API for managing airline flight statuses. Provides endpoints for viewing, adding, and updating flights."
     });
+
+    var webApiXmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var webApiXmlPath = Path.Combine(AppContext.BaseDirectory, webApiXmlFile);
+    if (File.Exists(webApiXmlPath))
+    {
+        options.IncludeXmlComments(webApiXmlPath);
+    }
+
+    var applicationAssembly = typeof(AirlineService.Application.DependencyInjection).Assembly;
+    var appXmlFile = $"{applicationAssembly.GetName().Name}.xml";
+    var appXmlPath = Path.Combine(AppContext.BaseDirectory, appXmlFile);
+    if (File.Exists(appXmlPath))
+    {
+        options.IncludeXmlComments(appXmlPath);
+    }
 });
 
 var app = builder.Build();
@@ -40,4 +57,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 await app.RunAsync();
-

@@ -1,5 +1,6 @@
 using AirlineService.Application.Common.Interfaces;
 using AirlineService.Infrastructure.Data;
+using AirlineService.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,10 @@ public static class DependencyInjection
 
         services.AddScoped<ApplicationDbContextInitializer>();
 
+        // Memory Cache
+        services.AddMemoryCache();
+        services.AddSingleton<ICacheService, MemoryCacheService>();
+
         return services;
     }
 }
-
